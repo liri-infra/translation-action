@@ -1,0 +1,18 @@
+language: minimal
+
+services:
+  - docker
+
+script:
+  - make build
+
+deploy:
+  provider: script
+  script: ./.travis/docker-push
+  skip_cleanup: true
+  on:
+    branch: master
+
+notifications:
+  email: false
+  slack: lirios:fdUqVmPzqPskEL1UBhqapZ0w

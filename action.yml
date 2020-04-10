@@ -1,0 +1,13 @@
+name: 'lupdate-action'
+description: 'Update translation sources'
+author: 'plfiorini'
+
+runs:
+  using: 'docker'
+  image: 'docker://liridev/lupdate-action'
+
+inputs:
+  sources_path:
+    description: 'Path to sources.json'
+    default: '.tx/sources.json'
+    required: true
