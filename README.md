@@ -30,15 +30,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ssh-key: ${{ secrets.CI_SSH_KEY }}
-          ssh-strict: false
-          persist-credentials: true
       - name: Run lupdate
         uses: liri-infra/lupdate-action@master
       - name: Push sources and pull translations
         uses: liri-infra/transifex-action@master
+        with:
             tx_token: ${{ secrets.TX_TOKEN }}
+            ssh_key: ${{ secrets.CI_SSH_KEY }}
             push_sources: true
             pull_translations: true
 ```
