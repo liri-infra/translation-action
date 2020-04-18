@@ -1,21 +1,71 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@liri.io>
 #
 # SPDX-License-Identifier: MIT
 
+import glob
 import os
 import json
+import subprocess
+import sys
+
+# JSON contains an array of dictionaries with the following keys:
+# - type: contains `ts` or `desktop`
+# - directory: sources directory, only for `ts`
+# - source_file: template file, only for `desktop`
+# - file_filter: filter of the source files, only for `desktop`
+# - output_path: output file location
+
+
+def run(args):
+    print('+ ' + ' '.join(map(repr, args)))
+    return subprocess.check_output(args)
+
 
 def main():
     github_workspace = os.environ['GITHUB_WORKSPACE']
     sources_path = os.environ.get('INPUT_SOURCES_PATH') or os.path.join(github_workspace, '.tx', 'sources.json')
 
+    os.chdir(github_workspace)
+
     with open(sources_path, 'r') as f:
         sources = json.load(f)
         for entry in sources:
-            args = ['lupdate', entry['directory'], '-ts', '-no-obsolete', entry['output_path']]
-            os.system(' '.join(args))
+            process_entry(entry)
+
+
+def process_entry(entry):
+    for key in ('type', 'output_path'):
+        if key not in entry:
+            print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
+            return
+    if entry['type'] == 'ts':
+        if 'directory' not in entry:
+            print('Entry doesn\'t have "directory": skipping', file=sys.stderr)
+            return
+    elif entry['type'] == 'desktop':
+        for key in ('source_file', 'file_filter'):
+            if key not in entry:
+                print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
+                return
+    else:
+        print('Entry has an unkown type (%s): skipping' % entry['type'], file=sys.stderr)
+        return
+
+    if entry['type'] == 'ts':
+        directory = entry['directory']
+        output_path = entry['output_path']
+        run(['lupdate', directory, '-ts', '-no-obsolete', output_path])
+    elif entry['type'] == 'desktop':
+        source_file = entry['source_file']
+        dest_file = entry['output_path']
+        file_filter = entry['file_filter'].replace('<lang>', '*')
+        globs = glob.glob(file_filter)
+        args = ['/usr/bin/translate-desktop', '--source=' + source_file, '--dest=' + dest_file]
+        run(args + globs)
+        run(['git', 'add', dest_file])
+
 
 if __name__ == '__main__':
     main()

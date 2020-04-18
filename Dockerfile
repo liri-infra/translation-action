@@ -10,6 +10,10 @@ USER root
 WORKDIR /root
 ENV HOME /root
 
+RUN set -ex && \
+    apt install -y python3 git
+
 ADD entrypoint /entrypoint
+ADD translate-desktop /usr/bin/translate-desktop
 
 ENTRYPOINT ["/entrypoint"]
