@@ -18,9 +18,9 @@ import sys
 # - output_path: output file location
 
 
-def run(args):
-    print('+ ' + ' '.join(map(repr, args)))
-    return subprocess.check_output(args)
+def run(cmd, *args):
+    print('+ ' + ' '.join(map(repr, cmd)))
+    return subprocess.check_output(cmd, *args)
 
 
 def main():
@@ -56,15 +56,15 @@ def process_entry(entry):
     if entry['type'] == 'ts':
         directory = entry['directory']
         output_path = entry['output_path']
-        run(['lupdate', directory, '-ts', '-no-obsolete', output_path])
+        run(['lupdate', directory, '-ts', '-no-obsolete', output_path], check=True)
     elif entry['type'] == 'desktop':
         source_file = entry['source_file']
         dest_file = entry['output_path']
         file_filter = entry['file_filter'].replace('<lang>', '*')
         globs = glob.glob(file_filter)
         args = ['/usr/bin/translate-desktop', '--source=' + source_file, '--dest=' + dest_file]
-        run(args + globs)
-        run(['git', 'add', dest_file])
+        run(args + globs, check=True)
+        run(['git', 'add', dest_file], check=True)
 
 
 if __name__ == '__main__':
