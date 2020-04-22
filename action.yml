@@ -4,7 +4,7 @@ author: 'plfiorini'
 
 runs:
   using: 'docker'
-  image: 'docker://liridev/lupdate-action'
+  image: 'Dockerfile'
 
 inputs:
   sources_path:
