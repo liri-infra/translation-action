@@ -8,6 +8,7 @@ import glob
 import os
 import json
 import subprocess
+import shlex
 import sys
 
 # JSON contains an array of dictionaries with the following keys:
@@ -18,9 +19,12 @@ import sys
 # - output_path: output file location
 
 
-def run(cmd, *args):
-    print('+ ' + ' '.join(map(repr, cmd)))
-    return subprocess.check_output(cmd, *args)
+def run(cmd, **kwargs):
+    out = []
+    for c in cmd:
+        out.append(shlex.quote(c))
+    print('+ ' + repr(' '.join(out))[1:-1])
+    return subprocess.run(cmd, **kwargs)
 
 
 def main():
