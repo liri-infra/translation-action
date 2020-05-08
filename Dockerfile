@@ -20,7 +20,7 @@ USER root
 WORKDIR /root
 ENV HOME /root
 
-ADD entrypoint /entrypoint
-ADD translate-desktop /usr/bin/translate-desktop
+COPY entrypoint /entrypoint
+COPY translate-desktop /usr/bin/translate-desktop
 
 ENTRYPOINT ["/entrypoint"]
