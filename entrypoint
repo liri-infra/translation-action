@@ -53,6 +53,10 @@ def process_entry(entry):
             if key not in entry:
                 print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
                 return
+    elif entry['type'] == 'metainfo':
+        if 'source_file' not in entry:
+            print('Entry doesn\'t have "source_file": skipping', file=sys.stderr)
+            return
     else:
         print('Entry has an unkown type (%s): skipping' % entry['type'], file=sys.stderr)
         return
@@ -69,6 +73,10 @@ def process_entry(entry):
         args = ['/usr/bin/translate-desktop', '--source=' + source_file, '--dest=' + dest_file]
         run(args + globs, check=True)
         run(['git', 'add', dest_file], check=True)
+    elif entry['type'] == 'metainfo':
+        source_file = entry['source_file']
+        output_path = entry['output_path']
+        run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-o', output_path, source_file], check=True)
 
 
 if __name__ == '__main__':

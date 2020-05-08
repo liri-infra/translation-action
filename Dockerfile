@@ -10,7 +10,7 @@ RUN set -ex && \
     curl 'http://archive.neon.kde.org/public.key' | apt-key add - && \
     apt-add-repository http://archive.neon.kde.org/user && \
     apt-get update -y && \
-    apt-get install -y python3 git qttools5-dev-tools
+    apt-get install -y python3 git qttools5-dev-tools itstool
 
 ENV QT_SELECT=5
 
@@ -20,6 +20,8 @@ USER root
 WORKDIR /root
 ENV HOME /root
 
+RUN mkdir -p /usr/share/lupdate-action
+COPY as-metainfo.its /usr/share/lupdate-action/as-metainfo.its
 COPY entrypoint /entrypoint
 COPY translate-desktop /usr/bin/translate-desktop
 
