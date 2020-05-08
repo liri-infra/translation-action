@@ -1,16 +1,54 @@
-# lupdate-action
+<!--
+SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@gmail.com>
 
-Runs `lupdate` to update Qt translation sources.
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
+# translation-action
+
+[![License](https://img.shields.io/badge/license-GPLv3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+
+This action does the following tasks:
+
+ 1. Regenerate translation source files
+ 2. Push source files to Transifex in order to rebase the translations
+ 3. Pull rebased translations from Transifex
+ 4. Commit and push to git
 
 Your project must have a `sources.json` file, usually located under the `.tx` directory.
-This file contains a list of objects with the following keys:
-  * `directory`: sources directory
-  * `output_path`: path to the source translation to create
 
-Here's an example:
+This file contains a list of objects with the following keys:
+
+  * `type`: contains `ts`, `desktop` or `metainfo`
+  * `directory`: sources directory, only for `ts`
+  * `source_file`: template file, only for `desktop` and `metainfo`
+  * `file_filter`: filter of the source files, only for `desktop` and `metainfo`
+  * `output_path`: output file location
+
+Here's an example of `.tx/sources.json` from [Liri Text](https://github.com/lirios/text/blob/develop/.tx/sources.json):
 
 ```json
-[{"directory": "src", "output_path": "translations/app/liri-text.ts"}]
+[
+  {
+    "type": "ts",
+    "directory": "src",
+    "output_path": "translations/app/liri-text.ts"
+  },
+  {
+    "type": "desktop",
+    "source_file": "data/io.liri.Text.desktop.in",
+    "dest_file": "data/io.liri.Text.desktop",
+    "file_filter": "translations/data/desktop/<lang>.po",
+    "output_path": "translations/data/desktop/desktop.pot"
+  },
+  {
+    "type": "metainfo",
+    "source_file": "data/io.liri.Text.appdata.xml.in",
+    "dest_file": "data/io.liri.Text.appdata.xml",
+    "file_filter": "translations/data/metainfo/<lang>.po",
+    "output_path": "translations/data/metainfo/metainfo.pot"
+  }
+]
 ```
 
 ## Usage
@@ -30,15 +68,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Run lupdate
-        uses: liri-infra/lupdate-action@master
-      - name: Push sources and pull translations
-        uses: liri-infra/transifex-action@master
+      - name: Update translations
+        uses: liri-infra/translation-action@master
+        env:
+          TX_TOKEN:  ${{ secrets.TX_TOKEN }}
         with:
-            tx_token: ${{ secrets.TX_TOKEN }}
-            ssh_key: ${{ secrets.CI_SSH_KEY }}
-            push_sources: true
-            pull_translations: true
+          ssh_key: ${{ secrets.CI_SSH_KEY }}
 ```
 
 The example checks out the project, configures git to push with a ssh key,

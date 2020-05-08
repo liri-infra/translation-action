@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@liri.io>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import glob
+import os
+import json
+import subprocess
+import shlex
+import sys
+
+def run(cmd, **kwargs):
+    out = []
+    for c in cmd:
+        out.append(shlex.quote(c))
+    print('+ ' + repr(' '.join(out))[1:-1])
+    return subprocess.run(cmd, **kwargs)
+
+
+def main():
+    github_workspace = os.environ['GITHUB_WORKSPACE']
+    sources_path = os.environ.get('INPUT_SOURCES_PATH') or os.path.join(github_workspace, '.tx', 'sources.json')
+
+    os.chdir(github_workspace)
+
+    with open(sources_path, 'r') as f:
+        sources = json.load(f)
+        for entry in sources:
+            process_entry(entry)
+
+
+def process_entry(entry):
+    for key in ('type', 'output_path'):
+        if key not in entry:
+            print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
+            return
+    if entry['type'] == 'ts':
+        if 'directory' not in entry:
+            print('Entry doesn\'t have "directory": skipping', file=sys.stderr)
+            return
+    elif entry['type'] in ('desktop', 'metainfo'):
+        for key in ('source_file', 'file_filter'):
+            if key not in entry:
+                print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
+                return
+    else:
+        # This is an entry that we don't care about
+        return
+
+    if entry['type'] == 'ts':
+        directory = entry['directory']
+        output_path = entry['output_path']
+        run(['lupdate-qt5', directory, '-ts', '-no-obsolete', output_path], check=True)
+        run(['git', 'add', output_path], check=True)
+    elif entry['type'] == 'desktop':
+        source_file = entry['source_file']
+        output_path = entry['output_path']
+        run(['cp', source_file, source_file + '.in'], check=True)
+        run(['sed', '-e', 's/^_//g', '-i', source_file + '.in'], check=True)
+        run(['xgettext', '-n', '-c', '--keyword=Categories', '-o', output_path, source_file], check=True)
+        os.unlink(source_file + '.in')
+        run(['git', 'add', output_path], check=True)
+    elif entry['type'] == 'metainfo':
+        source_file = entry['source_file']
+        output_path = entry['output_path']
+        run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-o', output_path, source_file], check=True)
+        run(['git', 'add', output_path], check=True)
+
+
+if __name__ == '__main__':
+    main()

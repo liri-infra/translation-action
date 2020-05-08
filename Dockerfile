@@ -5,7 +5,7 @@ LABEL "homepage"="https://liri.io"
 LABEL "maintainer"="Pier Luigi Fiorini <pierluigi.fiorini@liri.io>"
 
 RUN set -ex && \
-    apk add git python3 qt5-qttools qt5-qttools-dev itstool
+    apk add git python3 qt5-qttools qt5-qttools-dev itstool gettext intltool
 
 ENV QT_SELECT=5
 
@@ -18,6 +18,6 @@ ENV HOME /root
 RUN mkdir -p /usr/share/lupdate-action
 COPY as-metainfo.its /usr/share/lupdate-action/as-metainfo.its
 COPY entrypoint /entrypoint
-COPY translate-desktop /usr/bin/translate-desktop
+COPY regenerate-sources /usr/bin/regenerate-sources
 
 ENTRYPOINT ["/entrypoint"]

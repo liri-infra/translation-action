@@ -2,7 +2,7 @@
 
 # SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@liri.io>
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import glob
 import os
@@ -10,14 +10,6 @@ import json
 import subprocess
 import shlex
 import sys
-
-# JSON contains an array of dictionaries with the following keys:
-# - type: contains `ts` or `desktop`
-# - directory: sources directory, only for `ts`
-# - source_file: template file, only for `desktop`
-# - file_filter: filter of the source files, only for `desktop`
-# - output_path: output file location
-
 
 def run(cmd, **kwargs):
     out = []
@@ -27,12 +19,8 @@ def run(cmd, **kwargs):
     return subprocess.run(cmd, **kwargs)
 
 
-def main():
-    github_workspace = os.environ['GITHUB_WORKSPACE']
+def merge_translations():
     sources_path = os.environ.get('INPUT_SOURCES_PATH') or os.path.join(github_workspace, '.tx', 'sources.json')
-
-    os.chdir(github_workspace)
-
     with open(sources_path, 'r') as f:
         sources = json.load(f)
         for entry in sources:
@@ -44,39 +32,110 @@ def process_entry(entry):
         if key not in entry:
             print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
             return
-    if entry['type'] == 'ts':
-        if 'directory' not in entry:
-            print('Entry doesn\'t have "directory": skipping', file=sys.stderr)
-            return
-    elif entry['type'] == 'desktop':
+    if entry['type'] in ('desktop', 'metainfo'):
         for key in ('source_file', 'file_filter'):
             if key not in entry:
                 print('Entry doesn\'t have "%s": skipping' % key, file=sys.stderr)
                 return
-    elif entry['type'] == 'metainfo':
-        if 'source_file' not in entry:
-            print('Entry doesn\'t have "source_file": skipping', file=sys.stderr)
-            return
     else:
-        print('Entry has an unkown type (%s): skipping' % entry['type'], file=sys.stderr)
+        # This is an entry that we don't care about
         return
 
-    if entry['type'] == 'ts':
-        directory = entry['directory']
-        output_path = entry['output_path']
-        run(['lupdate-qt5', directory, '-ts', '-no-obsolete', output_path], check=True)
-    elif entry['type'] == 'desktop':
+    if entry['type'] in ('desktop', 'metainfo'):
         source_file = entry['source_file']
-        dest_file = entry['output_path']
+        output_path = entry['output_path']
+        dest_file = entry.get('dest_file')
         file_filter = entry['file_filter'].replace('<lang>', '*')
         globs = glob.glob(file_filter)
-        args = ['/usr/bin/translate-desktop', '--source=' + source_file, '--dest=' + dest_file]
-        run(args + globs, check=True)
-        run(['git', 'add', dest_file], check=True)
-    elif entry['type'] == 'metainfo':
-        source_file = entry['source_file']
-        output_path = entry['output_path']
-        run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-o', output_path, source_file], check=True)
+
+        if entry['type'] == 'desktop':
+            run(['intltool-merge', '--desktop-style', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True)
+        elif entry['type'] == 'metainfo':
+            # Generate .mo for each translation
+            modir = tempfile.mkdtemp()
+            for filename in globs:
+                rx = entry['file_filter'].replace('<lang>', r'(.+)')
+                m = re.match(rx, filename)
+                if m:
+                    lang = m.group(1)
+                    run(['msgfmt', filename, '-o', os.path.join(modir, lang + '.mo')], check=True)
+            # Merge translations
+            globs = glob.glob(modir + '/*.mo')
+            run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True)
+
+
+def main():
+    # Parameters
+    github_repository = os.environ['GITHUB_REPOSITORY']
+    ssh_key = os.environ.get('INPUT_SSH_KEY')
+    translations_folder = os.environ.get('INPUT_TRANSLATIONS_FOLDER')
+    committer_email = os.environ.get('INPUT_COMMITTER_EMAIL', 'git-action@transifex.com')
+    committer_name = os.environ.get('INPUT_COMMITTER_NAME', 'Transifex Github action')
+    try:
+        minimum_perc = int(os.environ.get('INPUT_MINIMUM_PERC', '0'))
+    except ValueError:
+        minimum_perc = 0
+
+    # tx additional arguments
+    args = []
+    if minimum_perc > 0:
+        args.append(f'--minimum-perc={minimum_perc}')
+
+    # Enter the workspace
+    github_workspace = os.environ['GITHUB_WORKSPACE']
+    os.chdir(github_workspace)
+
+    # Save ssh key
+    ssh_tempfile = ''
+    if ssh_key:
+        fd, ssh_tempfile = tempfile.mkstemp()
+        with open(ssh_tempfile, 'w') as f:
+            f.write(ssh_key)
+
+    # Configure email and name
+    run(['git', 'config', '--local', 'user.email', committer_email], check=True)
+    run(['git', 'config', '--local', 'user.name', committer_name], check=True)
+
+    # Default push policy
+    run(['git', 'config', 'push.default', 'simple'], check=True)
+
+    # Git checkout action does a shallow clone. That prevents us to
+    # access common history of branches
+    run(['git', 'fetch', '--unshallow'], check=True)
+
+    # Regenerate sources
+    run(['regenerate-sources'], check=True)
+
+    # Push sources to Transifex
+    run(['tx', 'push', '--no-interactive', '--source'], check=True)
+
+    # Pull rebased translations from Transifex
+    pull_args = ['tx', 'pull', '--no-interactive', '--force', '--all']
+    run(pull_args + args, check=True)
+
+    # Merge translations
+    merge_translations()
+
+    # Add files
+    paths = glob.glob(translations_folder, recursive=True)
+    for path in paths:
+        run(['git', 'add', path], check=True)
+
+    # Show staged changes (check=False otherwise it will raise an exception
+    # when there are no changes)
+    run(['git', 'diff', '--staged'])
+
+    # Commit (but stash non needed changes, for example sometimes .tx/config)
+    if run(['git', 'diff', '--staged', '--quiet']).returncode != 0:
+        if ssh_tempfile:
+            os.environ['GIT_SSH_COMMAND'] = f'ssh -i {ssh_tempfile} -o StrictHostKeyChecking=no'
+            run(['git', 'remote', 'set-url', '--push', 'origin', f'git@github.com:{github_repository}'], check=True)
+        msg = 'Automatic merge of Transifex translations\n\n[ci skip]'
+        run(['git', 'commit', '--message=' + msg], check=True)
+        run(['git', 'stash'])
+        run(['git', 'push'], check=True)
+    else:
+        print('Nothing to commit')
 
 
 if __name__ == '__main__':
