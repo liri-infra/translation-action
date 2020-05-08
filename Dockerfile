@@ -1,16 +1,11 @@
-FROM ubuntu:18.04
+FROM alpine:latest
 
 LABEL "repository"="https://github.com/liri-infra/lupdate-action"
 LABEL "homepage"="https://liri.io"
 LABEL "maintainer"="Pier Luigi Fiorini <pierluigi.fiorini@liri.io>"
 
 RUN set -ex && \
-    apt-get update -y && \
-    apt-get install -y curl gnupg2 software-properties-common && \
-    curl 'http://archive.neon.kde.org/public.key' | apt-key add - && \
-    apt-add-repository http://archive.neon.kde.org/user && \
-    apt-get update -y && \
-    apt-get install -y python3 git qttools5-dev-tools itstool
+    apk add git python3 qt5-qttools qt5-qttools-dev itstool
 
 ENV QT_SELECT=5
 
