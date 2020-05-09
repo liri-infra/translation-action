@@ -1,9 +1,5 @@
 FROM alpine:latest
 
-LABEL "repository"="https://github.com/liri-infra/lupdate-action"
-LABEL "homepage"="https://liri.io"
-LABEL "maintainer"="Pier Luigi Fiorini <pierluigi.fiorini@liri.io>"
-
 RUN set -ex && \
     apk add git openssh-client python3 py3-pip qt5-qttools qt5-qttools-dev itstool gettext intltool && \
     pip3 install transifex-client
