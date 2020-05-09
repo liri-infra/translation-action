@@ -132,8 +132,9 @@ def main():
         if ssh_tempfile:
             os.environ['GIT_SSH_COMMAND'] = f'ssh -i {ssh_tempfile} -o StrictHostKeyChecking=no'
             run(['git', 'remote', 'set-url', '--push', 'origin', f'git@github.com:{github_repository}'], check=True)
-        msg = 'Automatic merge of Transifex translations\n\n[ci skip]'
-        run(['git', 'commit', '--message=' + msg], check=True)
+        msg1 = 'Automatic merge of Transifex translations'
+        msg2 = '[ci skip]'
+        run(['git', 'commit', '-m', msg1, '-m', msg2], check=True)
         run(['git', 'stash'])
         run(['git', 'push'], check=True)
     else:
