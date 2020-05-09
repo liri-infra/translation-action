@@ -1,8 +1,7 @@
-FROM alpine:latest
+FROM opensuse/tumbleweed
 
 RUN set -ex && \
-    apk add git openssh-client python3 py3-pip qt5-qttools qt5-qttools-dev itstool gettext intltool && \
-    pip3 install transifex-client
+    zypper install -y git openssh transifex-client itstool gettext-tools intltool libqt5-linguist
 
 ENV QT_SELECT=5
 ENV PYTHONUNBUFFERED=1
