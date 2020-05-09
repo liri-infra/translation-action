@@ -7,6 +7,7 @@
 import glob
 import os
 import json
+import re
 import subprocess
 import shlex
 import sys
