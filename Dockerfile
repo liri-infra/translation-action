@@ -8,6 +8,7 @@ RUN set -ex && \
     apk add git python3 qt5-qttools qt5-qttools-dev itstool gettext intltool
 
 ENV QT_SELECT=5
+ENV PYTHONUNBUFFERED=1
 
 # Otherwise we won't be able to write to GITHUB_WORKSPACE, see
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#docker-container-filesystem
