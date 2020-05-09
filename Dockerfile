@@ -6,7 +6,7 @@ LABEL "maintainer"="Pier Luigi Fiorini <pierluigi.fiorini@liri.io>"
 
 RUN set -ex && \
     apk add git openssh-client python3 py3-pip qt5-qttools qt5-qttools-dev itstool gettext intltool && \
-    pip install transifex-client
+    pip3 install transifex-client
 
 ENV QT_SELECT=5
 ENV PYTHONUNBUFFERED=1
