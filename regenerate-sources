@@ -65,7 +65,7 @@ def process_entry(entry):
     elif entry['type'] == 'metainfo':
         source_file = entry['source_file']
         output_path = entry['output_path']
-        run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-o', output_path, source_file], check=True)
+        run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-o', output_path, source_file], check=True)
         run(['git', 'add', output_path], check=True)
 
 

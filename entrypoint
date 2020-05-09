@@ -62,7 +62,7 @@ def process_entry(entry):
                     run(['msgfmt', filename, '-o', os.path.join(modir, lang + '.mo')], check=True)
             # Merge translations
             globs = glob.glob(modir + '/*.mo')
-            run(['itstool', '-i', '/usr/share/lupdate-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True)
+            run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True)
 
 
 def main():

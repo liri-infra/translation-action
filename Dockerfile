@@ -12,8 +12,8 @@ USER root
 WORKDIR /root
 ENV HOME /root
 
-RUN mkdir -p /usr/share/lupdate-action
-COPY as-metainfo.its /usr/share/lupdate-action/as-metainfo.its
+RUN mkdir -p /usr/share/translation-action
+COPY as-metainfo.its /usr/share/translation-action/as-metainfo.its
 COPY entrypoint /entrypoint
 COPY regenerate-sources /usr/bin/regenerate-sources
 
