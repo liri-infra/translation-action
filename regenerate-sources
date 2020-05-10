@@ -57,10 +57,7 @@ def process_entry(entry):
     elif entry['type'] == 'desktop':
         source_file = entry['source_file']
         output_path = entry['output_path']
-        run(['cp', source_file, source_file + '.in'], check=True)
-        run(['sed', '-e', 's/^_//g', '-i', source_file + '.in'], check=True)
-        run(['xgettext', '-n', '-c', '-o', output_path, source_file + '.in'], check=True)
-        os.unlink(source_file + '.in')
+        run(['desktop-to-pot', source_file, output_path], check=True)
         run(['git', 'add', output_path], check=True)
     elif entry['type'] == 'metainfo':
         source_file = entry['source_file']

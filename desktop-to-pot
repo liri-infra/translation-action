@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@liri.io>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import io
+import os
+import sys
+import time
+
+class ParsingError(Exception):
+    pass
+
+
+def escape(value):
+    return value.replace('\\','\\\\').replace('"', "\\\"").replace("\n","\\n").replace("\t","\\t")
+
+
+def main(src_filename, dst_filename):
+    messages = []
+
+    with io.open(src_filename, 'r', encoding='utf-8', errors='replace') as f:
+        read_entries = False
+        line_no = 0
+        for line in f:
+            line_no += 1
+            line = line.strip()
+            if not line:
+                continue
+            elif line[0] == '#':
+                continue
+            elif line[0] == '[':
+                section = line.lstrip('[').rstrip(']')
+                read_entries = section == 'Desktop Entry'
+            elif read_entries:
+                try:
+                    key, value = line.split('=', 1)
+                except ValueError:
+                    raise ParsingError('Invalid line: %s in "%s"' % (line, filename))
+                key = key.strip()
+                if key[0] == '_':
+                    actual_key = key[1:]
+                    message = {'key': actual_key, 'msgid': escape(value), 'line_number': line_no}
+                    messages.append(message)
+
+    with open(dst_filename, 'w') as out:
+        out.write('# SOME DESCRIPTIVE TITLE.\n')
+        out.write('# Copyright (C) YEAR THE PACKAGE\'S COPYRIGHT HOLDER\n')
+        out.write('# This file is distributed under the same license as the PACKAGE package.\n')
+        out.write('# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n')
+        out.write('#\n')
+        out.write('#, fuzzy\n')
+        out.write('msgid ""\n')
+        out.write('msgstr ""\n')
+        out.write('"Project-Id-Version: PACKAGE VERSION\\n"\n')
+        out.write('"Report-Msgid-Bugs-To: \\n"\n')
+        out.write('"POT-Creation-Date: %s\\n"\n' % time.strftime("%Y-%m-%d %H:%M%z"))
+        out.write('"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"\n')
+        out.write('"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"\n')
+        out.write('"Language-Team: LANGUAGE <LL@li.org>\\n"\n')
+        out.write('"Language: \\n"\n')
+        out.write('"MIME-Version: 1.0\\n"\n')
+        out.write('"Content-Type: text/plain; charset=UTF-8\\n"\n')
+        out.write('"Content-Transfer-Encoding: 8bit\\n"\n')
+        out.write('\n')
+        num_messages = len(messages)
+        for message in messages:
+            num_messages -= 1
+            out.write('#. (desktop-to-pot) {}\n'.format(message['key']))
+            out.write('#: {}:{}\n'.format(os.path.basename(src_filename), message['line_number']))
+            out.write('msgid "{}"\n'.format(message['msgid']))
+            out.write('msgstr ""\n')
+            if num_messages > 0:
+                out.write('\n')
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('source', help='Desktop file')
+    parser.add_argument('dest', help='Destination POT file')
+    args = parser.parse_args()
+
+    main(args.source, args.dest)
