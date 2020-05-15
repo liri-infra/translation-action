@@ -69,6 +69,7 @@ def main(src_filename, dst_filename):
             num_messages -= 1
             out.write('#. (desktop-to-pot) {}\n'.format(message['key']))
             out.write('#: {}:{}\n'.format(os.path.basename(src_filename), message['line_number']))
+            out.write('msgctxt "{}"\n'.format(message['key']))
             out.write('msgid "{}"\n'.format(message['msgid']))
             out.write('msgstr ""\n')
             if num_messages > 0:
