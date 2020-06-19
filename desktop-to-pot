@@ -55,7 +55,7 @@ def main(src_filename, dst_filename):
         out.write('msgstr ""\n')
         out.write('"Project-Id-Version: PACKAGE VERSION\\n"\n')
         out.write('"Report-Msgid-Bugs-To: \\n"\n')
-        out.write('"POT-Creation-Date: %s\\n"\n' % time.strftime("%Y-%m-%d %H:%M%z"))
+        #out.write('"POT-Creation-Date: %s\\n"\n' % time.strftime("%Y-%m-%d %H:%M%z"))
         out.write('"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"\n')
         out.write('"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"\n')
         out.write('"Language-Team: LANGUAGE <LL@li.org>\\n"\n')
