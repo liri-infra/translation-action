@@ -51,7 +51,7 @@ def process_entry(entry):
         globs = glob.glob(file_filter)
 
         if entry['type'] == 'desktop':
-            run(['intltool-merge', '--desktop-style', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True)
+            run(['intltool-merge', '--desktop-style', '--utf8', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True)
         elif entry['type'] == 'metainfo':
             # Generate .mo for each translation
             modir = tempfile.mkdtemp()
