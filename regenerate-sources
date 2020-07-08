@@ -19,6 +19,13 @@ def run(cmd, **kwargs):
     return subprocess.run(cmd, **kwargs)
 
 
+def remove_line(filename, pattern):
+    cat = subprocess.Popen(['cat', filename], stdout=subprocess.PIPE)
+    with open(filename, 'w'):
+        egrep = subprocess.Popen(['egrep', '-v', pattern], stdin=cat.stdout, stdout=f)
+        egrep.communicate()
+
+
 def main():
     github_workspace = os.environ['GITHUB_WORKSPACE']
     sources_path = os.environ.get('INPUT_SOURCES_PATH') or os.path.join(github_workspace, '.tx', 'sources.json')
@@ -63,6 +70,7 @@ def process_entry(entry):
         source_file = entry['source_file']
         output_path = entry['output_path']
         run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-o', output_path, source_file], check=True)
+        remove_line(output_path, '^"POT-Creation-Date')
         run(['git', 'add', output_path], check=True)
 
 
