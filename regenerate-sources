@@ -9,6 +9,7 @@ import os
 import json
 import subprocess
 import shlex
+import shutil
 import sys
 
 def run(cmd, **kwargs):
@@ -20,10 +21,12 @@ def run(cmd, **kwargs):
 
 
 def remove_line(filename, pattern):
+    tmp_filename = filename + '.tmp'
     cat = subprocess.Popen(['cat', filename], stdout=subprocess.PIPE)
-    with open(filename, 'w') as f:
+    with open(tmp_filename, 'w') as f:
         egrep = subprocess.Popen(['egrep', '-v', pattern], stdin=cat.stdout, stdout=f)
         egrep.communicate()
+        shutil.move(tmp_filename, filename)
 
 
 def main():
