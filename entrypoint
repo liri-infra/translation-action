@@ -108,8 +108,13 @@ def main():
     # Regenerate sources
     run(['regenerate-sources'], check=True)
 
-    # Push sources to Transifex
-    run(['tx', 'push', '--no-interactive', '--source'], check=True)
+    # Show staged changes (check=False otherwise it will raise an exception
+    # when there are no changes)
+    run(['git', 'diff', '--staged'])
+
+    # Push sources to Transifex only if something has changed
+    if run(['git', 'diff', '--staged', '--quiet']).returncode != 0:
+        run(['tx', 'push', '--no-interactive', '--source'], check=True)
 
     # Pull rebased translations from Transifex
     pull_args = ['tx', 'pull', '--no-interactive', '--force', '--all']
