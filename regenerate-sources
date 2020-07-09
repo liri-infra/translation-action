@@ -21,7 +21,7 @@ def run(cmd, **kwargs):
 
 def remove_line(filename, pattern):
     cat = subprocess.Popen(['cat', filename], stdout=subprocess.PIPE)
-    with open(filename, 'w'):
+    with open(filename, 'w') as f:
         egrep = subprocess.Popen(['egrep', '-v', pattern], stdin=cat.stdout, stdout=f)
         egrep.communicate()
 
