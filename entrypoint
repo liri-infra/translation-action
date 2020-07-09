@@ -43,6 +43,8 @@ def process_entry(entry):
         # This is an entry that we don't care about
         return
 
+    env = {'LANG': 'en_US.UTF-8', 'LC_ALL': 'en_US.UTF-8'}
+
     if entry['type'] in ('desktop', 'metainfo'):
         source_file = entry['source_file']
         output_path = entry['output_path']
@@ -51,7 +53,7 @@ def process_entry(entry):
         globs = glob.glob(file_filter)
 
         if entry['type'] == 'desktop':
-            run(['intltool-merge', '--desktop-style', '--utf8', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True)
+            run(['intltool-merge', '--desktop-style', '--utf8', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True, env=env)
         elif entry['type'] == 'metainfo':
             # Generate .mo for each translation
             modir = tempfile.mkdtemp()
@@ -63,7 +65,7 @@ def process_entry(entry):
                     run(['msgfmt', filename, '-o', os.path.join(modir, lang + '.mo')], check=True)
             # Merge translations
             globs = glob.glob(modir + '/*.mo')
-            run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True)
+            run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True, env=env)
 
 
 def main():
