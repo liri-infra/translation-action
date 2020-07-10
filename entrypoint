@@ -52,6 +52,7 @@ def process_entry(entry):
 
         if entry['type'] == 'desktop':
             run(['desktop-merge', os.path.dirname(entry['file_filter']), source_file, dest_file], check=True)
+            run(['git', 'add', dest_file])
         elif entry['type'] == 'metainfo':
             # Generate .mo for each translation
             modir = tempfile.mkdtemp()
