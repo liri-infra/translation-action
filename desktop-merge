@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import glob
+import io
 import os
 import re
 import polib
@@ -25,8 +26,8 @@ def get_translations(po_dirname):
 
 
 def merge(template_filename, dst_filename, translations):
-    f = open(dst_filename, 'w')
-    with open(template_filename, 'r') as template:
+    f = io.open(dst_filename, 'w', encoding='utf-8')
+    with io.open(template_filename, 'r', encoding='utf-8') as template:
         for line in template.readlines():
             line = line.rstrip()
             # Marked lines are translated, other lines are written verbatim
