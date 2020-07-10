@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2020 Pier Luigi Fiorini <pierluigi.fiorini@liri.io>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import glob
+import os
+import re
+import polib
+
+def get_translations(po_dirname):
+    translations = {}
+    for filename in glob.glob(os.path.join(po_dirname, '*.po')):
+        po = polib.pofile(filename, encoding='UTF-8')
+        valid_entries = [e for e in po if not e.obsolete]
+        messages = {}
+        for entry in valid_entries:
+            if entry.msgstr:
+                messages[entry.msgid] = entry.msgstr
+        if messages:
+            lang = po.metadata['Language']
+            translations[lang] = messages
+    return translations
+
+
+def merge(template_filename, dst_filename, translations):
+    f = open(dst_filename, 'w')
+    with open(template_filename, 'r') as template:
+        for line in template.readlines():
+            line = line.rstrip()
+            # Marked lines are translated, other lines are written verbatim
+            m = re.match(r'^\s*(_*)([A-Za-z0-9\-]+)\s*=\s*(.*)', line)
+            if m:
+                marked = m.group(1)
+                key = m.group(2)
+                value = m.group(3)
+                f.write(f'{key}={value}\n')
+                if marked:
+                    for lang in sorted(translations.keys()):
+                        for msgid, msgstr in translations[lang].items():
+                            if value == msgid:
+                                trvalue = translations[lang][msgid]
+                                f.write(f'{key}[{lang}]={trvalue}\n')
+            else:
+                f.write(line + '\n')
+    f.close()
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dir', help='PO files directory')
+    parser.add_argument('template', help='Desktop file template')
+    parser.add_argument('dest', help='Destination desktop file')
+    args = parser.parse_args()
+
+    translations = get_translations(args.dir)
+    merge(args.template, args.dest, translations)
