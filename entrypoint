@@ -65,6 +65,7 @@ def process_entry(entry):
             # Merge translations
             globs = glob.glob(modir + '/*.mo')
             run(['itstool', '-i', '/usr/share/translation-action/as-metainfo.its', '-j', source_file, '-o', dest_file] + globs, check=True)
+            run(['git', 'add', dest_file])
 
 
 def main():
