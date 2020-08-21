@@ -21,6 +21,15 @@ def run(cmd, **kwargs):
     return subprocess.run(cmd, **kwargs)
 
 
+def create_license_file(output_path):
+    license_path = output_path + '.license'
+    with open(license_path, 'w') as out:
+        out.write('SPDX-FileCopyrightText: 2020 Liri Team\n')
+        out.write('\n')
+        out.write('SPDX-License-Identifier: CC0-1.0\n')
+    run(['git', 'add', license_path], check=True)
+
+
 def merge_translations():
     sources_path = os.environ.get('INPUT_SOURCES_PATH') or os.path.join(github_workspace, '.tx', 'sources.json')
     with open(sources_path, 'r') as f:
@@ -129,6 +138,12 @@ def main():
     paths = glob.glob(translations_folder, recursive=True)
     for path in paths:
         run(['git', 'add', path], check=True)
+        # Create license files
+        for dp, dn, filenames in os.walk('translations'):
+            for f in filenames:
+                if f.endswith('.license'):
+                    continue
+                create_license_file(os.path.join(dp, f))
 
     # Show staged changes (check=False otherwise it will raise an exception
     # when there are no changes)
