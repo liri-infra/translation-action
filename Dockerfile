@@ -1,9 +1,4 @@
-FROM opensuse/tumbleweed
-
-RUN set -ex && \
-    zypper install -y python3-pip git openssh itstool gettext-tools libqt5-linguist && \
-    # transifex-client from OpenSuSE doesn't recognize $TX_TOKEN
-    pip install transifex-client polib
+FROM liridev/suse-qt515
 
 ENV QT_SELECT=5
 ENV PYTHONUNBUFFERED=1
