@@ -87,6 +87,7 @@ def main():
 
     # Enter the workspace
     github_workspace = os.environ['GITHUB_WORKSPACE']
+    print(f'Entering "{github_workspace}"...')
     os.chdir(github_workspace)
 
     # Save ssh key
