@@ -97,6 +97,9 @@ def main():
         with open(ssh_tempfile, 'w') as f:
             f.write(ssh_key)
 
+    # Print hash for reference
+    run(['git', 'log', '-1', '--format="%H"'], check=True)
+
     # Configure email and name
     run(['git', 'config', '--local', 'user.email', committer_email], check=True)
     run(['git', 'config', '--local', 'user.name', committer_name], check=True)
