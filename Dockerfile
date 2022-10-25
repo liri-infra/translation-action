@@ -1,4 +1,4 @@
-FROM liridev/suse-qt515
+FROM kdeorg/ci-suse-qt515
 
 ENV QT_SELECT=5
 ENV PYTHONUNBUFFERED=1
@@ -8,6 +8,11 @@ ENV PYTHONUNBUFFERED=1
 USER root
 WORKDIR /root
 ENV HOME /root
+
+# Install stuff for Transifex and stuff
+RUN zypper --non-interactive install \
+        python3-pip itstool libqt5-linguist && \
+    pip install GitPython polib transifex-client>=0.14
 
 RUN mkdir -p /usr/share/translation-action
 COPY as-metainfo.its /usr/share/translation-action/as-metainfo.its
