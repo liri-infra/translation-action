@@ -90,6 +90,9 @@ def main():
     print(f'Entering "{github_workspace}"...')
     os.chdir(github_workspace)
 
+    # Add workspace as a safe directory
+    run(['git', 'config', '--global', '--add', 'safe.directory', github_workspace], check=True)
+
     # Save ssh key
     ssh_tempfile = ''
     if ssh_key:
