@@ -123,10 +123,10 @@ def main():
 
     # Push sources to Transifex only if something has changed
     if run(['git', 'diff', '--staged', '--quiet']).returncode != 0:
-        run(['tx', 'push', '--no-interactive', '--source'], check=True)
+        run(['tx', 'push', '--source'], check=True)
 
     # Pull rebased translations from Transifex
-    pull_args = ['tx', 'pull', '--no-interactive', '--force', '--all']
+    pull_args = ['tx', 'pull', '--force', '--all']
     run(pull_args + args, check=True)
 
     # Merge translations
