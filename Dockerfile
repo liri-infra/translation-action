@@ -9,10 +9,12 @@ USER root
 WORKDIR /root
 ENV HOME /root
 
-# Install stuff for Transifex and stuff
+# Install Transifex and other tools
 RUN zypper --non-interactive install \
-        python3-pip itstool libqt5-linguist && \
-    pip install GitPython polib transifex-client>=0.14
+        curl python3-pip itstool libqt5-linguist && \
+    pip install GitPython polib && \
+    curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash && \
+    mv tx /usr/bin
 
 RUN mkdir -p /usr/share/translation-action
 COPY as-metainfo.its /usr/share/translation-action/as-metainfo.its
