@@ -62,7 +62,7 @@ def process_entry(entry):
     if entry['type'] == 'ts':
         directory = entry['directory']
         output_path = entry['output_path']
-        run(['lupdate-qt5', directory, '-ts', '-no-obsolete', output_path], check=True)
+        run(['lupdate6', directory, '-ts', '-no-obsolete', output_path], check=True)
         run(['git', 'add', output_path], check=True)
     elif entry['type'] == 'desktop':
         source_file = entry['source_file']

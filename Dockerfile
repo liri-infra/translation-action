@@ -1,6 +1,6 @@
-FROM kdeorg/suse-qt515
+FROM kdeorg/suse-qt65
 
-ENV QT_SELECT=5
+ENV QT_SELECT=6
 ENV PYTHONUNBUFFERED=1
 
 # Otherwise we won't be able to write to GITHUB_WORKSPACE, see
@@ -11,7 +11,7 @@ ENV HOME /root
 
 # Install Transifex and other tools
 RUN zypper --non-interactive install \
-        curl python3-pip itstool libqt5-linguist && \
+        curl python3-pip itstool && \
     pip install GitPython polib && \
     curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash && \
     mv tx /usr/bin
