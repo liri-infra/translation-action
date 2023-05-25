@@ -1,4 +1,4 @@
-FROM kdeorg/ci-suse-qt515
+FROM kdeorg/suse-qt515
 
 ENV QT_SELECT=5
 ENV PYTHONUNBUFFERED=1
