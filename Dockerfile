@@ -11,7 +11,7 @@ ENV HOME /root
 
 # Install Transifex and other tools
 RUN zypper --non-interactive install \
-        curl python3-pip itstool && \
+        curl python311-pip itstool && \
     pip install GitPython polib && \
     curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash && \
     mv tx /usr/bin
