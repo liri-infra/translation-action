@@ -1,4 +1,4 @@
-FROM kdeorg/suse-qt65
+FROM fedora:39
 
 ENV QT_SELECT=6
 ENV PYTHONUNBUFFERED=1
@@ -10,8 +10,9 @@ WORKDIR /root
 ENV HOME /root
 
 # Install Transifex and other tools
-RUN zypper --non-interactive install curl itstool && \
-    pip install GitPython polib && \
+RUN dnf update -y && \
+    dnf install -y curl itstool git python3-GitPython python3-polib qt6-linguist && \
+    dnf clean all && \
     curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash && \
     mv tx /usr/bin
 
