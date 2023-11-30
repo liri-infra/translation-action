@@ -10,8 +10,7 @@ WORKDIR /root
 ENV HOME /root
 
 # Install Transifex and other tools
-RUN zypper --non-interactive install \
-        curl python310-pip itstool && \
+RUN zypper --non-interactive install curl itstool && \
     pip install GitPython polib && \
     curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash && \
     mv tx /usr/bin
